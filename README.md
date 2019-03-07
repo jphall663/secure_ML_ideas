@@ -1,5 +1,5 @@
 # secure_ML_ideas
-See [secure_ML_ideas.pdf](secure_ML_ideas.pdf)
+See [secure_ml_ideas.pdf](secure_ml_ideas.pdf)
 
 <p align="center">
 <img width="638" height="825" src="secure_ml_ideas-0.png">
