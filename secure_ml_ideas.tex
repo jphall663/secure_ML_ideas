@@ -86,7 +86,12 @@ Inversion basically refers to getting information out of a model (as opposed to 
  
 A motivated attacker could conceivably learn, say by surrogate model inversion or by social engineering, how to game a model to receive a desired prediction outcome or avoid an undesirable prediction outcome. Carrying out an attack by engineering an input for such a purpose is referred to as an adversarial example attack. Adversarial example attacks could be used to get an outcome that an attacker wants, say a large loan or product discount, or an adversarial example attack could be used to avoid an undesirable prediction outcome, say a long prison sentence based on a high criminal risk score. Some people might call using adversarial examples to avoid an undesirable outcome from a model prediction ``evasion''.\\
 
-\noindent\textbf{Solution(s):} Use sensitivity analysis and surrogate decision trees to understand what variable values (or combinations) can cause large swings in predictions and screen for these values or combinations of values when scoring new data.
+\noindent\textbf{Solution(s):} 
+\begin{itemize}
+\item Use sensitivity analysis and surrogate decision trees to understand what variable values (or combinations) can cause large swings in predictions and screen for these values or combinations of values when scoring new data.
+\item Activation analysis ...
+\item Benchmark models ...
+\end{itemize}
 
 % ---------- ----------
 \section{Impersonation} \label{sec:impersonation}
@@ -98,6 +103,7 @@ A motivated attacker can learn, say again by surrogate model inversion or by soc
 \begin{itemize}
 \item Screen for duplicates, or very similar inputs, potentially in a reduced-dimensional space using autoencoders, multi-dimensional scaling (MDS), etc. while scoring new data.
 \item Require additional authentication (e.g. 2FA) to receive a prediction.
+\item Activation analysis ...
 \end{itemize}
 
 % ---------- ----------
