@@ -2,8 +2,8 @@
 
 \documentclass[fleqn]{article}
 \renewcommand\refname{}
-\title{Practical Ideas for Model Security\\
-\large{Private, fair models, explanations, model debugging, and common sense}}
+\title{Practical Ideas for Model Security}%:\\\vspace{5pt}
+%\normalsize{Defense, forensics, \& whitehat hacking using debugging, explanation, and interpretable, fair, \& private models}}
 \author{\copyright Patrick Hall 2019}
 
 
@@ -36,69 +36,100 @@
 
 \maketitle
 
-Like many others I've known for sometime that machine learning models could pose security risks. However I lacked the vocabulary to reason through this very complex set of problems until just recently when \href{https://arxiv.org/pdf/1811.01134.pdf}{Nicolas Papernot} and \href{https://www.oreilly.com/ideas/you-created-a-machine-learning-application-now-make-sure-its-secure}{Ben Lorica} summarized and outlined some of the major issues practitioners should be worried about. When I went to dig into the literature I found lots of papers ... about adaptive deep learning and encryption. While adaptive deep learning on encrypted data is perhaps a goal to which to aspire in the future, I see several potential vulnerabilities and accompanying safe-guards that apply to the more common linear and tree-based models trained on static data that are used commonly today.  Before we get started, it's important to say I am no security expert, but I have been following the areas of interpretability, explanations, fairness, model debugging and privacy in machine learning very closely and it's many of these techniques that can be applied to reduce the attack surfaces of predictive modeling systems. (I think some unification is needed across explanations, fairness, interpretability, model debugging, privacy and security, but I will jump off that bridge another day $\dots$ or preferably $\dots$ let someone else.) In hopes of furthering discussion by \textit{actual} security experts and practitioners in the applied machine learning community, this post will put forward some not unreasonable scenario for attack vectors on a typical machine learning system at a typical organization and propose initial safe guards and solutions. 
+Like many others I've known for sometime that machine learning models could pose security risks. A recent flourish of \href{https://www.oreilly.com/ideas/you-created-a-machine-learning-application-now-make-sure-its-secure}{posts} and \href{https://arxiv.org/pdf/1811.01134.pdf}{papers} has outlined the broader topic, listed attack vectors and vulnerabilities, and started to propose defensive solutions. Before we get started, it's important to say I am no security expert, but I have been following the areas of machine learning debugging, explanations, fairness, interpretability, and privacy very closely and it's many of these techniques that I think can be applied to defend predictive modeling systems. The aim of this post is to brainstorm specifically on potential security problems and solutions in the context of popular, traditional predictive modeling systems, like linear and tree-based models trained on static datasets. In hopes of furthering discussion between \textit{actual} security experts and practitioners in the applied machine learning community (like me), this post will put forward some not unreasonable scenarios for attack vectors on a typical machine learning system at a typical organization and propose tentative defensive solutions. 
 
 % ---------- ----------
-\section{Insider Data Poisoning Attack} \label{sec:data_poisoning}
+\section{Data Poisoning Attacks} \label{sec:data_poisoning}
 % ---------- ----------
 
-Data poisoning refers systematically changing the data a model is trained on in an effort to change the models outputs. At many companies an employee, contractor, or anyone else with access to training data could alter that training data so that whatever the commercial application of the model is, they could benefit from the model prediction.  For example, by altering labels so that the model learns to award large loans or discounts to people like them. It's also possible that a malicious insider could use data poisoning to train a model to intentionally discriminate against a group of people.\\
+Data poisoning refers to someone systematically changing your training data to manipulate your model's outputs. (Data poisoning attacks have also been called ``causative'' attacks.) To poison data, an attacker must have access to some or all of your training data, and at many companies, many different employees, consultants, and contractors have just that -- and with little oversight. It's also possible a malicious external actor could acquire unauthorized access to some or all of your training data and poison it. A very direct kind of data poisoning attack might involve altering the labels of a training dataset so that whatever the commercial application of your model is, the attacker could dependably benefit from that model's predictions. For example, by altering labels so that your model learns to award large loans, large discounts, or small insurance premiums to people like themselves. (Forcing your model to make a false prediction for the attacker's benefit is sometimes called a violation of your model's ``integrity''.) It's also possible that a malicious actor could use data poisoning to train your model to intentionally discriminate against a group of people, never awarding them the big loan, big discount, or low premiums they rightfully deserve. This is like a denial-of-service (DOS) attack on your model itself. (Forcing your model to make a false prediction to hurt others is sometimes called a violation of your model's ``availability''.) While it might be easiest to think of data poisoning attack as changing the values in the existing rows of a dataset, data poisoning can also be done by adding seemingly harmless or superfluous columns onto a dataset. Values in these columns could then trigger altered model predictions.\\
 
 \noindent\textbf{Potential Solution(s):} 
 \begin{itemize}
-\item Score your models on your employees and contractors and look for anomalously beneficial outcomes.
-\item Residual analysis: Look for strange, prominent patterns in the residuals of predictions on employees or contractors.
-\item Private or fair models: Techniques exist such as \href{https://www.cs.toronto.edu/~toni/Papers/icml-final.pdf}{learning fair representations} (LFR) and \href{https://arxiv.org/pdf/1802.08908.pdf}{private aggregation of teacher ensembles} (PATE) that do not learn as much about specific individual traits to make predictions, and these models may be less susceptible to data poisoning attacks. 
-\item Disparate impact analysis: Many banks already undertake disparate impact analysis for fair lending purposes to determine if a model is treating different types of people in an unfair manner. Many other organizations do not seem to care. Disparate impact analysis could potentially discover intentional discrimination. There are several great open source tools to conduct disparate impact analysis, such as \href{https://github.com/dssg/aequitas}{aequitas}, \href{https://github.com/LASER-UMASS/Themis}{themis}, and \href{http://aif360.mybluemix.net/}{AIF360}.
+
+\item \textbf{Disparate impact analysis}: Many banks already undertake disparate impact analysis for fair lending purposes to determine if your model is treating different types of people in an unfair manner. Many other organizations do not seem to care. Disparate impact analysis could potentially discover intentional discrimination in model predictions. There are several great open source tools for disparate impact analysis, such as \href{https://github.com/dssg/aequitas}{aequitas}, \href{https://github.com/LASER-UMASS/Themis}{themis}, and \href{http://aif360.mybluemix.net/}{AIF360}. 
+
+\item \textbf{Fair or private models}: Models such as \href{https://www.cs.toronto.edu/~toni/Papers/icml-final.pdf}{learning fair representations} (LFR) and \href{https://arxiv.org/pdf/1802.08908.pdf}{private aggregation of teacher ensembles} (PATE) try focus less on individual demographic traits to make predictions, and these models may be less susceptible to discriminatory data poisoning attacks. 
+
+\item \textbf{Reject on Negative Impact (RONI)}: RONI is a technique that removes rows of data from the training dataset that decrease prediction accuracy. See further \ref{sec:ref} for more information on RONI. 
+
+\item \textbf{Residual analysis}: Look for strange, prominent patterns in the residuals of your model predictions, especially on employees, consultants, or contractors. 
+
+\item \textbf{Self-reflection}: Score your models on your employees, consultants, and contractors and look for anomalously beneficial predictions. 
+
 \end{itemize}
 
+\noindent Disparate impact analysis, residual analysis, and self-reflection can be conducted at training time and as part of real-time model monitoring activities.
+
 % ---------- ----------
-\section{Insider Watermark Attack}
+\section{Watermark Attacks}
 % ---------- ----------
 
-Watermarking is a term borrowed from the deep learning security literature that refers to putting special pixels into an image to trigger a desired outcome from a model. It's possible to do the same with customer data. An employee, contractor, or anyone else with access to the production code that makes predictions using the trained machine learning model could change that code to recognize a strange or unlikely combination of input variable values that would trigger a desired prediction outcome. For instance a malicious insider could easily insert a payload into the production scoring code that recognizes the combination of age of 0 and years at an address of 99 to trigger some kind of outcome from the model that benefits themselves or their associates.\\
+Watermarking is a term borrowed from the deep learning security literature that often refers to putting special pixels into an image to trigger a desired outcome from your model. It seems possible to do the same with customer or transactional data. An employee, consultant, contractor, or malicious external actor with access to the production code that makes real-time predictions could change that code to recognize a strange or unlikely combination of input variable values to trigger a desired prediction outcome. Like data poisoning, watermark attacks can be used to attack your model's integrity or availability. For instance, to attack your model's integrity, a malicious insider could easily insert a payload into your model's production scoring code that recognizes the combination of age of 0 and 99 years at an address to trigger some kind of positive prediction outcome for  themselves or their associates. To deny model availability, an attacker could insert an artificial, discriminatory rule into your model's scoring code that prevents your model from producing positive outcomes for a certain group of people.\\
 
 \noindent\textbf{Potential Solution(s):}
 \begin{itemize}
-\item Version control of production model code (so that changes to the production code are tracked and auditable).
-\item Data integrity constraints: Many databases don't  allow for strange or unrealistic combinations of input variables and this could potentially thwart watermarking attacks. Applying data integrity constraints on live, incoming data could have the same benefits.
-\item Outlier detection in training data and in new data: Autoencoders are a common fraud detection model that can catch input data that is strange or unlike other input data, but in complex ways. Autoencoders could potentially catch any watermarks used to test the triggering mechanism in training data and could be run on new data in real-time to catch strange input data before it enters the model.
+
+\item \textbf{Disparate impact analysis}: see section \ref{sec:data_poisoning}.
+
+\item \textbf{Version control}: Production model scoring code should be managed and version-controlled just like any other mission-critical software.
+
+\item \textbf{Data integrity constraints}: Many databases don't  allow for strange or unrealistic combinations of input variables and this could potentially thwart watermarking attacks. Applying data integrity constraints on live, incoming data streams could have the same benefits.
+
+\item \textbf{Outlier detection}: Autoencoders are a common fraud detection model that can identify input data that is strange or unlike other input data, but in complex ways. Autoencoders could potentially catch any watermarks used to trigger malicious mechanisms. 
+
 \end{itemize}
+
+\noindent Disparate impact analysis, data integrity constraints, and outlier detection can be used at training time and as part of real-time model monitoring activities.
 
 % ---------- ----------
 \section{Inversion by Surrogate Model}
 % ---------- ----------
 
-Inversion basically refers to getting information out of a model (as opposed to putting information into the model). If an attacker can receive many predictions from a model API or other endpoint (website, app etc.), they can train a surrogate model, i.e. simulation, of the unknown model that they are seeking to attack. An attacker could conceivably train a surrogate or simulation model between the inputs they used to generate the received predictions and the received predictions themselves.  Depending on the number of predictions they can receive, the surrogate model could become quite an accurate simulation of your model. Once the surrogate model is trained, then the attacker has a sandbox from which to plan impersonation or adversarial example attacks or the potential ability to start reconstructing aspects of the potentially sensitive training data. These types of surrogate models can also be trained using external data sources that can be somehow matched to predictions, as \href{https://www.propublica.org/article/machine-bias-risk-assessments-in-criminal-sentencing}{ProPublica famously did with the proprietary COMPAS recidivism model.}\\
+Inversion basically refers to getting unauthorized information out of your model -- as opposed to putting information into your model. Inversion can also be an example of a ``exploratory reverse-engineering'' attack. If an attacker can receive many predictions from your model API or other endpoint (website, app etc.), they can train their own surrogate (i.e. a ``simulation'') model, of your predictive model. An attacker could conceivably train a surrogate or simulation model between the inputs they used to generate the received predictions and the received predictions themselves. Depending on the number of predictions they can receive, the surrogate model could become quite an accurate simulation of your model. Once the surrogate model is trained, then the attacker has a sandbox from which to plan impersonation (i.e. ``mimicry'') or adversarial example attacks against your model's integrity or the potential ability to start reconstructing aspects of your potentially sensitive training data. These types of surrogate models can also be trained using external data sources that can be somehow matched to your predictions, as \href{https://www.propublica.org/article/machine-bias-risk-assessments-in-criminal-sentencing}{ProPublica} famously did with the proprietary COMPAS recidivism model.\\
 
 \noindent\textbf{Solution(s):}
 \begin{itemize}
-\item As a whitehat hacking exercise, train your own surrogate models between inputs and predictions of your production model and see ...
+\item \textbf{Whitehat surrogate models}: As a whitehat hacking exercise, train your own surrogate models between your inputs and the predictions of your production model and see ...
 	\begin{itemize}
-	\item The accuracy bounds of different types of surrogate models. Try to understand the extent to which a surrogate model can really represent your production model. 
-	\item What types of data trends can be learned from your surrogate model, like linear trends represented by linear model coefficients or the distribution of outcomes w.r.t. demographics by analyzing the number of individuals assigned to certain surrogate decision tree nodes.
-	\item What kind of rules can be learned from a surrogate decision tree, e.g. how to impersonate an individual that would receive a beneficial prediction. 
+	\item The accuracy bounds of different types of surrogate models; try to understand the extent to which a surrogate model can really be used to learn unfavorable knowledge about your model. 
+	\item The types of data trends that can be learned from your surrogate model, like linear trends represented by linear model coefficients.
+	\item The types of segments or demographic distributions that can be learned by analyzing the number of individuals assigned to certain surrogate decision tree nodes.
+	\item The rules that can be learned from a surrogate decision tree, for example how to reliably impersonate an individual that would receive a beneficial prediction. 
 	\end{itemize}
-\item Restrict high numbers of rapid predictions from similar IP addresses; consider artificially slowing down prediction latency.
-\item Require additional authentication (e.g. 2FA) to receive a prediction.
+\item \textbf{Restrict access}: Require additional authentication (e.g. 2FA) to receive a prediction.
+\item \textbf{Throttle predictions}: Restrict high numbers of rapid predictions from single users; consider artificially throttling prediction latency.
 \end{itemize}
 
 % ---------- ----------
 \section{Adversarial Attack for Evasion or Reward}
 % ---------- ----------
+
+Spam/phishing, insurance examples\\
  
+aka Exploratory Integrity attack\\
+
+sensitivity analysis for indiscriminate exploratory attack to learn an unfavorable evaluation distribution\\
+
 A motivated attacker could conceivably learn, say by surrogate model inversion or by social engineering, how to game a model to receive a desired prediction outcome or avoid an undesirable prediction outcome. Carrying out an attack by engineering an input for such a purpose is referred to as an adversarial example attack. Adversarial example attacks could be used to get an outcome that an attacker wants, say a large loan or product discount, or an adversarial example attack could be used to avoid an undesirable prediction outcome, say a long prison sentence based on a high criminal risk score. Some people might call using adversarial examples to avoid an undesirable outcome from a model prediction ``evasion''.\\
 
 \noindent\textbf{Solution(s):} 
 \begin{itemize}
 \item Use sensitivity analysis and surrogate decision trees to understand what variable values (or combinations) can cause large swings in predictions and screen for these values or combinations of values when scoring new data.
 \item Activation analysis ...
-\item Benchmark models ...
+\item Benchmark models ... Multiple models/experts
 \end{itemize}
 
 % ---------- ----------
 \section{Impersonation} \label{sec:impersonation}
 % ---------- ----------
+
+Spam/phishing, insurance examples\\
+
+aka Exploratory Integrity attack\\
+
+impersonation = mimicry \\
+allergy attacks in two stage models\\
 
 A motivated attacker can learn, say again by surrogate model inversion or by social engineering, what type of input or individual receives a desired prediction outcome and then impersonate this input or individual to receive the desired prediction outcome. \\
 
@@ -107,6 +138,7 @@ A motivated attacker can learn, say again by surrogate model inversion or by soc
 \item Screen for duplicates, or very similar inputs, potentially in a reduced-dimensional space using autoencoders, multi-dimensional scaling (MDS), etc. while scoring new data.
 \item Require additional authentication (e.g. 2FA) to receive a prediction.
 \item Activation analysis ...
+\item Include feature, second model, rule to account for number of similar rows ... 
 \end{itemize}
 
 % ---------- ----------
@@ -114,6 +146,8 @@ A motivated attacker can learn, say again by surrogate model inversion or by soc
 % ---------- ----------
 
 Several common machine learning usage patterns also have more general security concerns.\\
+
+Large scale DDOS on mission-critical systems\\
 
 \noindent\textbf{Blackboxes and Unnecessary Complexity}: Although recent developments in interpretable models and model explanations have provided the opportunity to use accurate and also transparent nonlinear classifiers and regressors, many machine workflows are still centered around more traditional blackbox models. Such blackbox models are only one type of often unnecessary complexity in a typical commercial machine learning workflow. Other sources for undue complexity could be exotic feature engineering or large numbers of package dependencies. Such complexity can be problematic for at least two reasons. 
 
@@ -133,14 +167,41 @@ Several common machine learning usage patterns also have more general security c
 
 Several older and newer general best practices can be deployed to lessen security vulnerabilities and to generally increase fairness, accountability, transparency, and trust in machine learning predictive systems.\\ 
 
-\noindent\textbf{Model Debugging for Security}: The newer field of model debugging is focused on discovering errors in machine learning model mechanisms and predictions and remediating those errors. Debugging tools such a surrogate models, residual analysis, and sensitivity analysis can be used in whitehat exercises to understand your own vulnerabilities or for forensic exercises to find any potential attacks that may have occurred or be occurring.\\
+Multiple models/experts\\
 
-\noindent\textbf{Model Documentation and Explanation Techniques}: Model documentation is a risk-mitigation strategy that has been used for decades in banking. It allows knowledge about complex modeling systems to be preserved and transferred as teams of model owners change over time. Model documentation has been traditionally applied to highly-transparent linear models, but with the advent of powerful, accurate explanatory tools such as tree SHAP and derivative-based local feature contributions for neural networks, now even pre-existing blackbox model workflows can be atleast somewhat explained, debugged, and documented. Documentation should obviously now include any known, remediated, or anticipated security vulnerabilites.\\
+Use features/rules in the modeling system that protect against attack = number of similar records, number of prediction requests - For when attack happens\\
+
+Train autoencoder on system statistics and this a system to monitor for strange behavior
+
+\noindent\textbf{Model Debugging for Security}: The newer field of model debugging is focused on discovering errors in machine learning model mechanisms and predictions and remediating those errors. Debugging tools such a surrogate models, residual analysis, and sensitivity analysis can be used in whitehat exercises to understand your own vulnerabilities or for forensic exercises to find any potential attacks that may have occurred or be occurring.
+
+Made formal by ACRE, Adversarial Learning \\
+
+\noindent\textbf{Model Documentation and Explanation Techniques}: Model documentation is a risk-mitigation strategy that has been used for decades in banking. It allows knowledge about complex modeling systems to be preserved and transferred as teams of model owners change over time. Model documentation has been traditionally applied to highly-transparent linear models, but with the advent of powerful, accurate explanatory tools such as tree SHAP and derivative-based local feature contributions for neural networks, now even pre-existing blackbox model workflows can be atleast somewhat explained, debugged, and documented. Documentation should obviously now include all security goals, including any known, remediated, or anticipated security vulnerabilites.\\
 
 \noindent\textbf{Model Monitoring and Management Explicitly for Security}: Most serious practitioners understand most models are trained on static snapshots of reality represented by training data and their prediction accuracy degrades in real-time as present realities drift away from the information captured in the training data. Today most model monitoring is aimed at discovering this drift in input variable distributions that will eventually lead to accuracy decay. Model monitoring should now likely be designed to monitor for the attacks described in sections  \ref{sec:data_poisoning} -- \ref{sec:impersonation} and any other potential threats your whitehat model debugging exercises uncover. (While not directly related to security, my opinion is models should also be evaluated for disparate impact in real-time as well.) Along with model documentation all modeling artifacts, source code, and associated metadata need to be managed, versioned, and audited for security like the valuable commercial assets they are.\\
 
-\noindent\textbf{Interpretable, Fair, or Private Models}: The techniques now exist, e.g. monotonic GBMs (M-GBM), scalable Bayesian rule lists (SBRL), eXplainable Neural Networks (XNN), that allow users to have both accuracy and interpretability. These accurate and interpretable models are easier to document and debug. Newer types of fair and private models, e.g. LFR, PATE, can also be trained to essentially care less about outward visible, demographic characteristics that can be easily observed, engineered into an adversarial example attack, or impersonated. When considering creating a new machine learning workflow in the future consider basing it around lower risk, private or fair models.\\
+\noindent\textbf{Interpretable, Fair, or Private Models i.e. specifically "Robust"}: The techniques now exist, e.g. monotonic GBMs (M-GBM), scalable Bayesian rule lists (SBRL), eXplainable Neural Networks (XNN), that allow users to have both accuracy and interpretability. These accurate and interpretable models are easier to document and debug. Newer types of fair and private models, e.g. LFR, PATE, can also be trained to essentially care less about outward visible, demographic characteristics that can be easily observed, engineered into an adversarial example attack, or impersonated. When considering creating a new machine learning workflow in the future consider basing it around lower risk, private or fair models.\\
+
+\section{References and Further Reading} \label{sec:ref}
+
+A lot of the contemporary academic literature focuses on adaptive learning, deep learning, and encryption. However, I don't know many practitioners who are actually doing these things yet. So in addition to recently published articles and blogs, I found papers from the 1990s and early 2000s about network intrusion, virus detection, spam filtering, and related topics to be really helpful resources as well. If you'd like to learn more about the fascinating subject of securing machine learning models, here are the main references -- past and present -- that I used for this post. I'd recommend them for further reading too.  
+
+\noindent Barreno, Marco, et al. ``The Security of Machine Learning.'' \textit{Machine Learning} 81.2 (2010): 121-148. URL: \url{https://people.eecs.berkeley.edu/~adj/publications/paper-files/SecML-MLJ2010.pdf}\\
+
+\noindent Kumar, Ajitesh. ``Security Attacks: Analysis of Machine Learning Models.'' \textit{DZone} (2018). URL: \url{https://dzone.com/articles/security-attacks-analysis-of-machine-learning-mode}\\
+
+\noindent Lorica, Ben and Loukides, Mike. ``You created a machine learning application. Now make sure it’s secure''. \text{O'Reilly Ideas}. URL: \url{https://www.oreilly.com/ideas/you-created-a-machine-learning-application-now-make-sure-its-secure}\\
+
+\noindent Papernot, Nicolas. ``A Marauder's Map of Security and Privacy in Machine Learning: An overview of current and future research directions for making machine learning secure and private. '' \textit{Proceedings of the 11th ACM Workshop on Artificial Intelligence and Security}. ACM, 2018. URL: \url{https://arxiv.org/pdf/1811.01134.pdf}
+
+
+\section{Conclusion}
 
 I care deeply about the science and practice of machine learning, and I'm now concerned a terrible machine learning hack, combined with credible concerns about privacy and discrimination, could increase burgeoning public skepticism about machine learning and AI. We should all remember there have been AI winters in the past, even the recent past. Security vulnerabilities, privacy violations, and algorithmic discrimination could all potentially combine to lead to decreased funding for machine learning research, draconian over-regulation of the field, and the next AI winter. Let's fix these important problems sooner rather than later.
+
+\section{Acknowledgements}
+
+Prashant Tomk 
 
 \end{document}
