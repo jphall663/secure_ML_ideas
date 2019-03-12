@@ -2,8 +2,7 @@
 
 \documentclass[fleqn]{article}
 \renewcommand\refname{}
-\title{Practical Ideas for Model Security}%:\\\vspace{5pt}
-%\normalsize{Defense, forensics, \& whitehat hacking using debugging, explanation, and interpretable, fair, \& private models}}
+\title{Proposals for Model Security:\\\vspace{5pt}\normalsize{Fair and private models, whitehat and forensic model debugging, and common sense}}
 \author{\copyright Patrick Hall 2019}
 
 
@@ -102,10 +101,10 @@ Inversion basically refers to getting unauthorized information out of your model
 \end{itemize}
 
 % ---------- ----------
-\section{Adversarial Example Attacks}
+\section{Adversarial Example Attacks} \label{sec:adv}
 % ---------- ----------
 
-A motivated attacker could conceivably learn, say by trial and error, surrogate model inversion, or by social engineering, how to game your model to receive their desired prediction outcome or to avoid an undesirable prediction. Carrying out an attack by specifically engineering a row of data for such a purpose is referred to as an adversarial example attack, and sometimes also as a ``exploratory integrity'' attack. An attacker could use an adversarial example attack to grant themselves a large loan or a low insurance premium, or to avoid a long prison sentence based on a high criminal risk score. Some people might call using adversarial examples to avoid an undesirable outcome from a model prediction ``evasion''.\\
+A motivated attacker could conceivably learn, say by trial and error (i.e. ``exploration''), surrogate model inversion, or by social engineering, how to game your model to receive their desired prediction outcome or to avoid an undesirable prediction. Carrying out an attack by specifically engineering a row of data for such a purpose is referred to as an adversarial example attack, and sometimes also as a ``exploratory integrity'' attack. An attacker could use an adversarial example attack to grant themselves a large loan or a low insurance premium, or to avoid a long prison sentence based on a high criminal risk score. Some people might call using adversarial examples to avoid an undesirable outcome from your model prediction ``evasion''.\\
 
 \noindent\textbf{Solution(s):} 
 \begin{itemize}
@@ -120,29 +119,34 @@ A motivated attacker could conceivably learn, say by trial and error, surrogate 
 
 \item \textbf{Whitehat sensitivity analysis}: Use sensitivity analysis to conduct your own exploratory attacks to understand what variable values (or combinations) can cause large swings in predictions and screen for these values or combinations of values when scoring new data.
 
-\item \textbf{Whitehat surrogate models} see section \ref{sec:inv}.
-
-\noindent Activation analysis and benchmark models can be used at training time and as part of real-time model monitoring activities.
+\item \textbf{Whitehat surrogate models} see section \ref{sec:inv}.\\
 
 \end{itemize}
+
+\noindent Activation analysis and benchmark models can be used at training time and as part of real-time model monitoring activities.
 
 % ---------- ----------
 \section{Impersonation} \label{sec:impersonation}
 % ---------- ----------
 
-aka Exploratory Integrity attack by mimicry, impersonation = mimicry \\
+\noindent A motivated attacker can learn, say again by trial and error, surrogate model inversion, or by social engineering, what type of input or individual receives a desired prediction outcome and then impersonate this input or individual to receive their desired prediction outcome for your model. (Impersonation attacks are sometimes also known as ``mimicry'' attacks.) Like an adversarial example attack, an impersonation attack involves artificially changing the input data values to your model. Unlike an adversarial example attack, where a potentially random combination of input data values could be used to trick your model, impersonation implies using the information associated with another modeled entity (i.e. convict, customer, financial transaction, patient etc.) to receive the prediction your model associates with that type of individual. For example an attacker could learn what characteristics your model associates with giving large discounts, like comp-ing a room at a casino for a big spender, and then falsify their information to receive the same discount. They could also share their strategy with others, potentially leading to large losses for your company.\\
 
-\noindent allergy attacks in two stage models\\
-
-\noindent A motivated attacker can learn, say again by surrogate model inversion or by social engineering, what type of input or individual receives a desired prediction outcome and then impersonate this input or individual to receive the desired prediction outcome. \\
+\noindent If your are using a two stage model, be aware of an attack vector often known as an ``allergy'' attack, where a malicious actor would impersonate a normal row of input data for the first stage of your model to conduct an attack on the second stage of your model.\\
 
 \noindent\textbf{Solution(s):} 
 \begin{itemize}
-\item Screen for duplicates, or very similar inputs, potentially in a reduced-dimensional space using autoencoders, multi-dimensional scaling (MDS), etc. while scoring new data.
-\item Require additional authentication (e.g. 2FA) to receive a prediction.
-\item Activation analysis ...
-\item Include feature, second model, rule to account for number of similar rows ... 
+
+\item \textbf{Activation analysis}: see section \ref{sec:adv}
+
+\item \textbf{Authorized access}: see section \ref{sec:inv}.
+
+\item \textbf{Screen for duplicates}: At scoring time track the number of similar records your model is exposed to, potentially in a reduced-dimensional space using autoencoders, multi-dimensional scaling (MDS), or similar dimension reduction techniques. If too many similar rows are encountered during some time-span, take corrective action.
+
+\item \noindent\textbf{Security-aware features}: Keep a feature in your pipeline, say \texttt{num\_similar\_queries}, that may be useless when your model is first trained or deployed, but could be populated at scoring time or during future model retrainings, that could make your model or your pipeline security-aware. For instance if at scoring time \texttt{num\_similar\_queries} is greater than zero, the scoring request could be sent for human oversight. In the future, when you retrain your model, you could teach it to give input data rows with high \texttt{num\_similar\_queries} values negative prediction outcomes.
+
 \end{itemize}
+
+\noindent Activation analysis, screening for duplicates, and security-aware features can be used at training time and as part of real-time model monitoring activities.
 
 % ---------- ----------
 \section{General Concerns}
@@ -150,7 +154,7 @@ aka Exploratory Integrity attack by mimicry, impersonation = mimicry \\
 
 Several common machine learning usage patterns also have more general security concerns.\\
 
-\noindent\textbf{Blackboxes and Unnecessary Complexity}: Although recent developments in interpretable models and model explanations have provided the opportunity to use accurate and also transparent nonlinear classifiers and regressors, many machine workflows are still centered around more traditional blackbox models. Such blackbox models are only one type of often unnecessary complexity in a typical commercial machine learning workflow. Other sources for undue complexity could be exotic feature engineering or large numbers of package dependencies. Such complexity can be problematic for at least two reasons. 
+\noindent\textbf{Blackboxes and Unnecessary Complexity}: Although recent developments in interpretable models and model explanations have provided the opportunity to use accurate and also transparent nonlinear classifiers and regressors, many machine workflows are still centered around more traditional blackbox models. Such blackbox models are only one type of often unnecessary complexity in a typical commercial machine learning workflow. Other examples of potentially harmful complexity could be overly-exotic feature engineering or large numbers of package dependencies. Such complexity can be problematic for at least two reasons. 
 
 \begin{itemize}
 
@@ -160,32 +164,31 @@ Several common machine learning usage patterns also have more general security c
  
 \end{itemize}
 
-\noindent\textbf{Distributed Systems and Models}: For better or for worse, we are in the age of big data, and many organizations are now using distributed data processing and machine learning systems. Distributed computing can provide a broad attack surface for a malicious internal or external actor in the context of machine learning. Data could be poisoned on only one or a few worker nodes of a large distributed data storage or processing system. A backdoor for watermarking could be coded into just one model of a large ensemble. Instead of debugging one simple dataset or model, now practitioners must examine data or models distributed across large computing clusters.\\
+\noindent\textbf{Distributed Systems and Models}: For better or for worse, we are in the age of big data, and many organizations are now using distributed data processing and machine learning systems. Distributed computing can provide a broad attack surface for a malicious internal or external actor in the context of machine learning. Data could be poisoned on only one or a few worker nodes of a large distributed data storage or processing system. A back door for watermarking could be coded into just one model of a large ensemble. Instead of debugging one simple dataset or model, now practitioners must examine data or models distributed across large computing clusters.\\
 
-\noindent\textbf{Large-scale DDOS attack}: on mission-critical systems, including machine learning models ...
-
+\noindent\textbf{Large-scale Distributed Denial of Service (DDOS) attacks}: If a predictive modeling service is crucial to your organization's mission, ensure you have atleast considered more conventional distributed denial of service attacks, where attackers hit the public-facing prediction service with an incredibly high volume of requests to delay or stop predictions for legitimate users.
 
 % ---------- ----------
 \subsection{General Solutions}
 % ---------- ----------
 
-Several older and newer general best practices can be deployed to lessen security vulnerabilities and to generally increase fairness, accountability, transparency, and trust in machine learning predictive systems.\\ 
+Several older and newer general best practices can be deployed to lessen your security vulnerabilities and to generally increase fairness, accountability, transparency, and trust in machine learning predictive systems.\\ 
 
-\noindent\textbf{Authorized access and prediction throttling}: ...\\
+\noindent\textbf{Authorized access and prediction throttling}: Standard safe-guards such as additional authentication and throttling may be highly effective at stymieing a number of the attack vectors described in sections \ref{sec:data_poisoning}--\ref{sec:impersonation}.\\
 
-\noindent\textbf{Benchmark models}: ...\\
+\noindent\textbf{Benchmark models}: An older or trusted linear modeling pipeline, or other highly transparent predictor, can be used as a benchmark model from which to measure whether a prediction was manipulated by any number of means, such as data poisoning, watermark attacks, or adversarial example attacks. If the difference between your trusted model's prediction and your more complex and opaque model's predictions are too large, record these instances, refer them to human analysts, or take other appropriate forensic or remediation steps. Of course serious precautions should be taken to ensure your benchmark model and pipeline remains secure and unchanged from it's original, trusted state.\\
 
-\noindent\textbf{Interpretable, Fair, or Private Models i.e. specifically "Robust"}: The techniques now exist, e.g. monotonic GBMs (M-GBM), scalable Bayesian rule lists (SBRL), eXplainable Neural Networks (XNN), that allow users to have both accuracy and interpretability. These accurate and interpretable models are easier to document and debug. Newer types of fair and private models, e.g. LFR, PATE, can also be trained to essentially care less about outward visible, demographic characteristics that can be easily observed, engineered into an adversarial example attack, or impersonated. When considering creating a new machine learning workflow in the future consider basing it around lower risk, private or fair models.\\
+\noindent\textbf{Interpretable, Fair, or Private Models}: The techniques now exist, e.g. monotonic GBMs (M-GBM), scalable Bayesian rule lists (SBRL), eXplainable Neural Networks (XNN), that could allow you to have both accuracy and interpretability. These accurate and interpretable models are easier to document and debug than classic machine learning black boxes. Newer types of fair and private models, e.g. LFR, PATE, can also be trained to essentially care less about outward visible, demographic characteristics that can be easily observed, socially-engineered into an adversarial example attack, or impersonated. When considering creating a new machine learning workflow in the future, think about basing it on lower-risk, interpretable, private or fair models that are more easily debugged and potentially robust to changes in an individual entity's characteristics.\\
 
 \noindent\textbf{Model Debugging for Security}: The newer field of model debugging is focused on discovering errors in machine learning model mechanisms and predictions and remediating those errors. Debugging tools such a surrogate models, residual analysis, and sensitivity analysis can be used in whitehat exercises to understand your own vulnerabilities or for forensic exercises to find any potential attacks that may have occurred or be occurring.\\
 
-\noindent\textbf{Model Documentation and Explanation Techniques}: Model documentation is a risk-mitigation strategy that has been used for decades in banking. It allows knowledge about complex modeling systems to be preserved and transferred as teams of model owners change over time. Model documentation has been traditionally applied to highly-transparent linear models, but with the advent of powerful, accurate explanatory tools such as tree SHAP and derivative-based local feature contributions for neural networks, now even pre-existing blackbox model workflows can be atleast somewhat explained, debugged, and documented. Documentation should obviously now include all security goals, including any known, remediated, or anticipated security vulnerabilites.\\
+\noindent\textbf{Model Documentation and Explanation Techniques}: Model documentation is a risk-mitigation strategy that has been used for decades in banking. It allows knowledge about complex modeling systems to be preserved and transferred as teams of model owners change over time. Model documentation has been traditionally applied to highly-transparent linear models, but with the advent of powerful, accurate explanatory tools such as tree SHAP and derivative-based local feature contributions for neural networks, now even pre-existing black box model workflows can be atleast somewhat explained, debugged, and documented. Documentation should obviously now include all security goals, including any known, remediated, or anticipated security vulnerabilities.\\
 
 \noindent\textbf{Model Monitoring and Management Explicitly for Security}: Most serious practitioners understand most models are trained on static snapshots of reality represented by training data and their prediction accuracy degrades in real-time as present realities drift away from the information captured in the training data. Today most model monitoring is aimed at discovering this drift in input variable distributions that will eventually lead to accuracy decay. Model monitoring should now likely be designed to monitor for the attacks described in sections  \ref{sec:data_poisoning} -- \ref{sec:impersonation} and any other potential threats your whitehat model debugging exercises uncover. (While not directly related to security, my opinion is models should also be evaluated for disparate impact in real-time as well.) Along with model documentation all modeling artifacts, source code, and associated metadata need to be managed, versioned, and audited for security like the valuable commercial assets they are.\\
 
 \noindent\textbf{Security-aware features}: Use features/rules in the modeling system that protect against attack = number of similar records, number of prediction requests - for when attack happens ...\\
 
-\noindent\textbf{Systemic anomaly detection}: Train autoencoder on system statistics and use this a system to monitor for strange behavior ...\\ 
+\noindent\textbf{Systemic anomaly detection}: Train an autoencoder--based anomaly detection meta-model on your entire predictive modeling system's statistics: number of predictions in some time period, latency, CPU, memory, and disk loads, and everything else you can get your hands on, and then closely monitor this meta-model for anomalies. An anomaly could tip you off that something was generally not right in your predictive modeling system. Subsequent investigation or specific mechanisms would be needed to trace down the exact problem.\\
 
 \section{References and Further Reading} \label{sec:ref}
 
@@ -199,13 +202,12 @@ A lot of the contemporary academic literature focuses on adaptive learning, deep
 
 \noindent Papernot, Nicolas. ``A Marauder's Map of Security and Privacy in Machine Learning: An overview of current and future research directions for making machine learning secure and private. '' \textit{Proceedings of the 11th ACM Workshop on Artificial Intelligence and Security}. ACM, 2018. URL: \url{https://arxiv.org/pdf/1811.01134.pdf}
 
-\section{Conclusion}
+\section*{Conclusion}
 
 I care deeply about the science and practice of machine learning, and I'm now concerned a terrible machine learning hack, combined with credible concerns about privacy violations and algorithmic discrimination, could increase burgeoning public skepticism about machine learning and AI. We should all remember there have been AI winters in the not-so-distant past. Security vulnerabilities, privacy violations, and algorithmic discrimination could all potentially combine to lead to decreased funding for machine learning research or draconian over-regulation of the field. Let's start discussing and addressing these important problems sooner rather than later.
 
-\section{Acknowledgements}
+\section*{Acknowledgements}
 
-\noindent Prashant S ... \\
-\noindent Tom K ... 
+Thanks to Prashant Shuklabaidya and Tom Kraljevic for their insightful comments and suggestions.
 
 \end{document}
