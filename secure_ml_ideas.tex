@@ -15,8 +15,8 @@
 \usepackage{MnSymbol}
 \usepackage{enumerate}
 \usepackage{setspace}
+\usepackage[hyphens]{url}
 \usepackage[colorlinks]{hyperref}
-\usepackage{breakurl}
 \usepackage{float}
 \usepackage{caption}
 \usepackage{subcaption}
@@ -100,6 +100,20 @@ Inversion basically refers to getting unauthorized information out of your model
 	\end{itemize}
 \end{itemize}
 
+% ---------- ----------
+\section{Membership Inference by Surrogate Model} \label{sec:mi}
+% ---------- ----------
+
+In an attack similar to inversion, also carried out by surrogate models, a malicious actor can determine whether a given person or product is in your model's training data.  Called a \textit{membership inference attack}, this hack is executed with two layers of surrogate models. First an attacker passes data into a public prediction API or other endpoint, receives predictions back, and then trains a surrogate model or models between the passed data and the predictions. Once a surrogate model or models has been trained to replicate your model, the attacker then trains a second layer classifier that can differentiate between data that was used to train the surrogate(s) and data that was not used to train the surrogate(s). When this second model is used to attack your model, it can give a solid indication as to whether any given row (\textit{or rows}) of data is in your training data. Membership in a training data set can be sensitive when the model and data are related to undesirable outcomes such as bankruptcy or disease, or desirable outcomes like high income or net worth. Moreover, if the relationship between a single row and the target of your model can be easily generalized by an attacker, such as an obvious relationship between race, gender, age and some undesirable outcome, this attack can violate the privacy of an entire group of people. Frighteningly, when carried out to it's fullest extent, a membership inference attack could also allow a malicious actor, with access only to a public prediction API or other model endpoint, to reconstruct large portions of a sensitive or valuable dataset.\\
+
+\noindent\textbf{Solution(s):}
+\begin{itemize}
+\item \textbf{Authorized access}: see section \ref{sec:inv}.
+\item \textbf{Disparate impact analysis}: see section \ref{sec:data_poisoning}.
+\item \textbf{Fair or private models}: see section \ref{sec:data_poisoning}.
+\item \textbf{Throttle predictions}: see section \ref{sec:inv}.
+\item \textbf{Whitehat surrogate models} see section \ref{sec:inv}.
+\end{itemize}
 % ---------- ----------
 \section{Adversarial Example Attacks} \label{sec:adv}
 % ---------- ----------
@@ -186,6 +200,8 @@ Several older and newer general best practices can be deployed to lessen your se
 
 \noindent\textbf{Model Monitoring and Management Explicitly for Security}: Most serious practitioners understand most models are trained on static snapshots of reality represented by training data and their prediction accuracy degrades in real-time as present realities drift away from the information captured in the training data. Today most model monitoring is aimed at discovering this drift in input variable distributions that will eventually lead to accuracy decay. Model monitoring should now likely be designed to monitor for the attacks described in sections  \ref{sec:data_poisoning} -- \ref{sec:impersonation} and any other potential threats your whitehat model debugging exercises uncover. (While not directly related to security, my opinion is models should also be evaluated for disparate impact in real-time as well.) Along with model documentation all modeling artifacts, source code, and associated metadata need to be managed, versioned, and audited for security like the valuable commercial assets they are.\\
 
+\noindent\textbf{Random data detection}: Because random data could be used to generate surrogate models, rules, statistical checks, or autoencoder models could be used to detect random data in real-time and prevent the issuance of predictions on random data.\\
+
 \noindent\textbf{Security-aware features}: Features, rules, and pre- or post-processing steps can be included in your models or pipelines that are security-aware, such as the number of similar rows seen by the model, whether the current row represents an employee, contractor, or consultant, or whether the values in the current row are similar to those found in whitehat adversarial example attacks. These features may or may not be useful when a model is first trained, but keeping a placeholder for them when scoring new data or when retraining future iterations of your model may come in very handy one day.\\
 
 \noindent\textbf{Systemic anomaly detection}: Train an autoencoder--based anomaly detection meta-model on your entire predictive modeling system's statistics: number of predictions in some time period, latency, CPU, memory, and disk loads, and everything else you can get your hands on, and then closely monitor this meta-model for anomalies. An anomaly could tip you off that something was generally not right in your predictive modeling system. Subsequent investigation or specific mechanisms would be needed to trace down the exact problem.\\
@@ -200,7 +216,10 @@ A lot of the contemporary academic literature focuses on adaptive learning, deep
 
 \noindent Lorica, Ben and Loukides, Mike. ``You created a machine learning application. Now make sure it’s secure''. \text{O'Reilly Ideas}. URL: \url{https://www.oreilly.com/ideas/you-created-a-machine-learning-application-now-make-sure-its-secure}\\
 
-\noindent Papernot, Nicolas. ``A Marauder's Map of Security and Privacy in Machine Learning: An overview of current and future research directions for making machine learning secure and private. '' \textit{Proceedings of the 11th ACM Workshop on Artificial Intelligence and Security}. ACM, 2018. URL: \url{https://arxiv.org/pdf/1811.01134.pdf}
+\noindent Papernot, Nicolas. ``A Marauder's Map of Security and Privacy in Machine Learning: An overview of current and future research directions for making machine learning secure and private. '' \textit{Proceedings of the 11th ACM Workshop on Artificial Intelligence and Security}. ACM, 2018. URL: \url{https://arxiv.org/pdf/1811.01134.pdf}\\
+
+\noindent Shokri, Reza, et al. "Membership Inference Attacks Against Machine Learning Models." 2017 IEEE Symposium on Security and Privacy (SP). IEEE, 2017. URL: \url{https://www.cs.cornell.edu/~shmat/shmat_oak17.pdf}
+
 
 \section*{Conclusion}
 
