@@ -1,4 +1,13 @@
-secure_ml_ideas.aux
-secure_ml_ideas.log
-secure_ml_ideas.out
-secure_ml_ideas.synctex.gz
+img/Thumbs.db
+*.aux
+*.bbl
+*.blg
+*.log
+*.nav
+*.out
+*.run.xml
+*.snm
+*.synctex.gz
+*.toc
+*-blx.bib
+.DS_Store

@@ -196,10 +196,10 @@ Due to lax security or a distributed attack on your model API or other model end
 		
 				\frametitle{Surrogate Model Inversion Attacks: \textbf{Defenses}}
 				\begin{itemize}
-					\item \textbf{Authentication}: Always authenticate users of your model’s API or other endpoints.
+					\item \textbf{Authentication}: Authenticate users of your model’s API or other endpoints.
 					\item \textbf{Defensive watermarks}: Add subtle or unusual information to your model’s predictions to aid in forensic analysis if your model is hacked or stolen.
 					\item \textbf{Throttling}: Consider artificially slowing down your prediction response times, especially after anomalous behavior is detected.
-					\item \textbf{White-hat surrogate models}: Try to build your own surrogate models as a white-hat hacking exercise to see what an attacker could learn about your public models.
+					\item \textbf{White-hat surrogate models}: Train your own surrogate models as a white-hat hacking exercise to see what an attacker could learn about your public models.
 				\end{itemize}
 				
 			\end{frame}
@@ -217,10 +217,10 @@ Due to lax security or a distributed attack on your model API or other model end
 				\begin{itemize}
 					\item this two-stage attack begins with a surrogate model inversion attack (see Slide: \ref{slide:inversion}).
 					\item A second-level surrogate is then trained to discriminate between rows of data in, and not in, the first-level surrogate's training data.
-					\item The second-level surrogate can dependably reveal whether a row of data was in, or not in, your training data \cite{membership_inference}.
+					\item The second-level surrogate can dependably reveal whether a row of data was in, or not in, your original training data \cite{membership_inference}.
 				\end{itemize}
 				
-Simply knowing if a person was in, or not in, a training dataset can be a violation of individual or group privacy. However, when carried out to the fullest extent, a membership inference attack can allow a bad actor to \textbf{rebuild your sensitive training data}!\normalsize	
+Simply knowing if a person was in, or not in, a training dataset can be a violation of individual or group privacy. However, when executed to the fullest extent, a membership inference attack can allow a bad actor to \textbf{rebuild your sensitive training data}!\normalsize	
 
 			\end{frame}
 	
@@ -280,17 +280,18 @@ Adversarial example attacks can also be enhanced, tested, and hardened using mod
 			\begin{frame}
 		
 				\frametitle{Adversarial Example Attacks: \textbf{Defenses}}		
-			
+				\small
 				\begin{itemize}
 					\item \textbf{Anomaly detection}: See Slide \ref{slide:watermark_defense}. 
 					\item \textbf{Authentication}: See Slide \ref{slide:inversion_defense}. 
 					\item \textbf{Benchmark models}: Always compare complex model predictions to trusted linear model predictions. If the two model’s predictions diverge beyond some acceptable threshold, review the prediction before you issue it.
+					\item \textbf{Fair or private models}: See Slide \ref{slide:data_poisoning_defense}.
 					\item \textbf{Throttling}: See Slide \ref{slide:inversion_defense}. 
 					\item \textbf{Model monitoring}: Watch your model in real-time for strange prediction behavior.
 					\item \textbf{White-hat sensitivity analysis}: Try to trick your own model by seeing its outcome on many different combinations of input data values.
 					\item \textbf{White-hat surrogate models}: See Slide \ref{slide:inversion_defense}. 
 				\end{itemize}
-
+				\normalsize
 			\end{frame}
 
 %-------------------------------------------------------------------------------
@@ -339,11 +340,11 @@ Bad actors learn ...
 			\begin{frame}[t, allowframebreaks]	
 		
 				\frametitle{General concerns}	
-				\small 
+				\footnotesize
 				\begin{itemize}
 					\item \textbf{Black-box models}: Over time a motivated, malicious actor could learn more about your own black-box model than you know and use this knowledge imbalance to attack your model \cite{papernot2018marauder}.
 					\item \textbf{Black-hat eXplainable AI (XAI)}:  While XAI can enable human learning from machine learning, regulatory compliance, and appeal of automated decisions, it can also make ML hacks easier and more damaging \cite{shokri2019privacy}.
-					\item \textbf{Distributed-denial-of-service (DDOS) attacks}: Like any other public-facing service, your model could be attacked with a DDOS attack that has nothing to do with machine learning.
+					\item \textbf{Distributed-denial-of-service (DDOS) attacks}: Like any other public-facing service, your model could be attacked with a DDOS attack.  
 					\item \textbf{Distributed systems and models}: Data and code spread over many machines provides a larger, more complex attack surface for a malicious actor.
 					\item \textbf{Package dependencies}: Any package your modeling pipeline is dependent on could potentially be hacked to conceal an attack payload.
 				\end{itemize}
@@ -362,15 +363,22 @@ Bad actors learn ...
 			\begin{frame}[t, allowframebreaks]	
 		
 				\frametitle{General Solutions}	
-				\small
+				\footnotesize
 				\begin{itemize}
 					\item \textbf{Authenticated access and prediction throttling}: for prediction APIs and other model endpoints.
-					\item \textbf{Benchmark models}: Always compare complex model predictions to less complex (and hopefully less hackable) model predictions. For traditional, low signal-to-noise data mining problems, predictions should probably not be too different. If they are, investigate them.
-					\item \textbf{Encrypted, differentially private, or federated training data}: Properly implemented, encrypted, differentially private, or federated training data can thwart many types of attacks. (Improperly implemented, these technologies simply create a broader attack surface or hinder forensic efforts.)		
-					\item \textbf{Interpretable, fair, or private models}: Some types of nonlinear models are designed to be directly interpretable, less discriminatory, or harder to hack. Consider using them. In addition to models like LFR and PATE, also checkout \href{https://github.com/h2oai/h2o-3/blob/master/h2o-py/demos/H2O_tutorial_gbm_monotonicity.ipynb}{monotonic GBMs} and \href{https://christophm.github.io/interpretable-ml-book/rulefit.html}{Rulefit}.
-					\item \textbf{Model documentation, management, and monitoring}: Take an inventory of your predictive models. All production models should be documented well-enough that a new employee could diagnose whether its current behavior is notably different from its intended or original behavior. Also keep details about who trained what model and on what data. Additionally, analyze the inputs and predictions of deployed models on live data. If they seem strange, investigate the problem.	
-					\item \textbf{Model debugging and testing, and white-hat hacking}: Test your models for accuracy, fairness, and privacy before deploying them. Train white-hat surrogate models and apply XAI techniques to them to see what a hackers can see. 
-					\item \textbf{System monitoring and profiling}: Train an autoencoder–based anomaly detection metamodel on your entire predictive modeling system’s operating statistics—the number of predictions in some time period, latency, CPU, memory and disk loads, the number of concurrent users, and everything else you can get your hands on—and then closely monitor this metamodel for anomalies.
+					\item \textbf{Benchmark models}: Compare complex model predictions to less complex (and hopefully less hackable) model predictions. For traditional, low signal-to-noise data mining problems, predictions should not be too different. If they are, investigate them.
+					\item \textbf{Encrypted, differentially private, or federated training data}: Properly implemented, these technologies can thwart many types of attacks. Improperly implemented, they simply create a broader attack surface or hinder forensic efforts.
+					\item \textbf{Interpretable, fair, or private models}: In addition to models like LFR and PATE, also checkout \href{https://github.com/h2oai/h2o-3/blob/master/h2o-py/demos/H2O_tutorial_gbm_monotonicity.ipynb}{monotonic GBMs}, \href{https://christophm.github.io/interpretable-ml-book/rulefit.html}{Rulefit}, \href{https://github.com/IBM/AIF360}{AIF360}, and the \href{https://users.cs.duke.edu/~cynthia/code.html}{Rudin group} at Duke.
+					\framebreak
+					\item \textbf{Model documentation, management, and monitoring}: 
+						\begin{itemize}
+							\item Take an inventory of your predictive models. 
+							\item Document production models well-enough that a new employee can diagnose whether their current behavior is notably different from their intended behavior. 
+							\item Know who trained what model, on what data, and when.
+							\item Monitor and investigate the inputs and predictions of deployed models on live data.	
+						\end{itemize}
+					\item \textbf{Model debugging and testing, and white-hat hacking}: Test your models for accuracy, fairness, and privacy before deploying them. Train white-hat surrogate models and apply XAI techniques to them to see what hackers can see. 
+					\item \textbf{System monitoring and profiling}: Use a meta anomaly detection system on your entire production modeling system’s operating statistics — e.g. number of predictions in some time period, latency, CPU, memory and disk loads, number of concurrent users, etc. — then closely monitor for anomalies.
 				\end{itemize}
 				\normalsize
 
@@ -429,7 +437,7 @@ Bad actors learn ...
 			
 			\vspace{10pt}
 			
-			\textit{Can Your Machine Learning Model Be Hacked?!'}:\\
+			\textit{Can Your Machine Learning Model Be Hacked?!}:\\
 			\footnotesize{\url{https://www.h2o.ai/blog/can-your-machine-learning-model-be-hacked/}}
 			
 		
