@@ -3,7 +3,7 @@
 ![](img/cheatsheet.png)
 
 
-See [secure_ml_ideas.pdf](secure_ml_ideas.pdf) for an drafty write-up of these attacks.
+See [secure_ml_ideas.pdf](secure_ml_ideas.pdf) for a drafty write-up of these attacks.
 
 
 Follow-ups to the original draft include:
