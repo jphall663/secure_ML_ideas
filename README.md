@@ -1,7 +1,7 @@
 # Secure Machine Learning Ideas
 
 ![](img/cheatsheet.png)
-Source: O'Reilly Media, [Responsible Machine Learning](http://info.h2o.ai/rs/644-PKX-778/images/OReilly_Responsible_ML_eBook.pdf), Patrick Hall, Navdeep Gill, and Benjamin Cox.
+Source: O'Reilly Media, [_Responsible Machine Learning_](http://info.h2o.ai/rs/644-PKX-778/images/OReilly_Responsible_ML_eBook.pdf), Patrick Hall, Navdeep Gill, and Benjamin Cox.
 
 
 See [secure_ml_ideas.pdf](secure_ml_ideas.pdf) for a drafty write-up of these attacks.
